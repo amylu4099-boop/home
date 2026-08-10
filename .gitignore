@@ -1,0 +1,51 @@
+# Secrets (NEVER commit)
+.env
+.env.*
+!.env.example
+
+# Hermes runtime locks / pids / caches
+*.lock
+*.pid
+gateway-starts.log
+processes.json
+channel_directory.json
+feishu_seen_message_ids.json
+gateway_state.json
+models_dev_cache.json
+*.bak
+
+# SQLite runtime DB
+state.db
+state.db-shm
+state.db-wal
+
+# Working / runtime / cache dirs that hermes regenerates
+logs/
+sessions/
+cache/
+cron/
+home/
+hooks/
+image_cache/
+memories/
+pairing/
+pending_messages/
+plans/
+platforms/
+sandboxes/
+skills/
+skins/
+workspace/
+audio_cache/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Local work artifacts (transcribe_work 里有 mp3 大文件 + 临时脚本)
+transcribe_work/
