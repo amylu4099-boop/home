@@ -54,3 +54,18 @@ if __name__ == "__main__":
     out = Path(sys.argv[2]) if len(sys.argv) >= 3 else None
     size = sys.argv[3] if len(sys.argv) >= 4 else "base"
     transcribe(audio, out, size)
+
+
+# === 自动二创（链式调用） ===
+try:
+    import subprocess
+    print("[auto] triggering secondary_create...", flush=True)
+    result = subprocess.run(
+        [sys.executable, str(Path(__file__).resolve().parent / "secondary_create.py"), str(out_md)],
+        capture_output=True, text=True, timeout=600,
+    )
+    print(result.stdout, flush=True)
+    if result.returncode != 0:
+        print(f"[auto] secondary_create failed: {result.stderr}", flush=True)
+except Exception as e:
+    print(f"[auto] secondary_create error: {e}", flush=True)
