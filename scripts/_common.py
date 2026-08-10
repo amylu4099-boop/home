@@ -71,3 +71,46 @@ def safe_filename_for_md(title: str) -> str:
         title = title.replace(c, "_")
     title = title.strip().rstrip(".")
     return title[:200] if len(title) > 200 else title
+
+
+# === 敏感信息脱敏 ===
+
+_SENSITIVE_KEYS = {
+    "FEISHU_APP_SECRET", "MINIMAX_CN_API_KEY", "MINIMAX_API_KEY",
+    "GLM_API_KEY", "HERMES_GATEWAY_TOKEN", "WEIXIN_TOKEN",
+}
+
+
+def mask_secret(value: str) -> str:
+    """脱敏 secret：保留前 4 + 后 4 字符"""
+    if not value or len(value) <= 10:
+        return "***"
+    return f"{value[:4]}...{value[-4:]}"
+
+
+def mask_env_value(key: str, value: str) -> str:
+    """如果是敏感 key，返回脱敏后值；否则原样"""
+    return mask_secret(value) if key in _SENSITIVE_KEYS else value
+
+
+def echo_env(env_path: Path, secrets_only: bool = False) -> str:
+    """安全地 echo .env 内容（敏感字段自动脱敏）"""
+    if not env_path.exists():
+        return ""
+    lines = []
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        s = line.strip()
+        if not s or s.startswith("#"):
+            lines.append(line)
+            continue
+        if "=" not in s:
+            lines.append(line)
+            continue
+        key, val = s.split("=", 1)
+        key = key.strip()
+        val = val.strip()
+        if secrets_only and key not in _SENSITIVE_KEYS:
+            continue
+        masked = mask_env_value(key, val)
+        lines.append(f"{key}={masked}")
+    return "\n".join(lines)
