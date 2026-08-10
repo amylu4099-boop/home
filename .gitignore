@@ -49,3 +49,7 @@ Thumbs.db
 
 # Local work artifacts (transcribe_work 里有 mp3 大文件 + 临时脚本)
 transcribe_work/
+
+# Spec Workflow MCP local state (not part of this repo)
+.spec-workflow/
+
