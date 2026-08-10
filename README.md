@@ -6,20 +6,32 @@ Hermes 平台的独立 profile，代号 `av-transcription`，通过飞书 bot **
 ## 仓库结构
 
 ```
-.
-├── README.md                  # 本文件
-├── .gitignore                 # 排除敏感 + Hermes 运行时文件
-├── .env.example               # 凭据模板（变量名 + 占位）
-├── hermes-profile/            # Hermes profile 关键文件（不含敏感）
-│   ├── SOUL.md                # 角色定义 / 已采纳规则
-│   ├── config.yaml            # 模型 / 平台配置
-│   ├── profile.yaml           # profile 元数据
-│   ├── .no-bundled-skills     # 标记文件（创建时 --no-skills）
-│   └── restore.bat            # 一键恢复脚本（Windows）
-├── transcriptions/
-│   └── 转录结果.md            # 已转录的样例
+音视频转录/
+├── README.md
+├── .gitignore
+├── .env.example
+├── hermes-profile/                # Hermes profile 关键文件（不含敏感）
+│   ├── SOUL.md                    # 角色定义 + 已采纳规则（R1+R2+R3+R4+R5）
+│   ├── config.yaml                # 模型/平台配置
+│   ├── profile.yaml               # profile 元数据
+│   ├── .no-bundled-skills         # 标记（创建时 --no-skills）
+│   └── restore.bat                # 一键恢复（Windows）
+├── transcriptions/                # R1: 转录结果（文件名=一句话标题）
+│   └── <一句话标题>.md
+├── 二创短视频文案/                  # R2: 视频号配文（图书带货风格）
+│   └── YYYYMMDD-转录结果＊二创＊<一句话标题>.md
+├── 二创通用/                       # R3: 通用二创（4 版本）
+│   └── YYYYMMDD-转录结果＊通用二创＊<一句话标题>.md
+├── 生图提示词/                     # 基于 R3 D 视频脚本生成
+│   └── YYYYMMDD-生图提示词＊<一句话标题>.md
 └── scripts/
-    └── transcribe.py          # faster-whisper 转录脚本（CPU）
+    ├── _common.py                # 共享工具（call_llm / mask_secret / generate_r1_title / 路径常量）
+    ├── transcribe.py             # 单文件转录（faster-whisper base，自动 R1 + 链式 R2）
+    ├── batch_transcribe.py       # 批量转录流水线
+    ├── secondary_create.py       # R2 视频号配文二创
+    ├── general_create.py         # R3 通用二创（4 版本）
+    ├── image_prompt.py           # 生图提示词生成（Midjourney/DALL-E/SD）
+    └── monitor_env.py            # .env 文件访问监控（安全工具）
 ```
 
 ## 出错时怎么回退
@@ -65,6 +77,8 @@ hermes-profile\restore.bat
 | R1 | 转录完成后保存的 .md 文件，第一行（# 标题）必须是一句话总结（agent 调 LLM 生成 15-25 字钩子标题）；文件名也用一句话标题 | 2026-08-10 |
 | R2 | 每次转录完成后，自动生成一份"视频号配文"风格的二创文案，保存到 `二创短视频文案/YYYYMMDD-转录结果＊二创＊<一句话标题>.md`（图书带货二创，提示词见 `scripts/secondary_create.py`） | 2026-08-10 |
 | R3 | 每次转录完成后，再生成一份"通用二创"（4 版本：摘要/文章化/新媒体/视频脚本），保存到 `二创通用/YYYYMMDD-转录结果＊通用二创＊<一句话标题>.md`（提示词见 `scripts/general_create.py`） | 2026-08-10 |
+| R4 | 基于 R3 D 视频脚本自动生成配套生图提示词（Midjourney/DALL-E/SD 通用），保存到 `生图提示词/YYYYMMDD-生图提示词＊<一句话标题>.md`（提示词见 `scripts/image_prompt.py`） | 2026-08-10 |
+| R5 | 脚本输出 secret 时自动脱敏（`mask_secret` 前 4 + 后 4）；`.env` 权限收紧到 ACL-only；`scripts/monitor_env.py` 监控 `.env` 文件访问 | 2026-08-10 |
 
 更多规则见 `hermes-profile/SOUL.md`。
 
