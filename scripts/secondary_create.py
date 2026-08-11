@@ -3,16 +3,14 @@
 依赖：transcribe.py 写出的 .md 转录文件
 输出：C:\\Users\\Michael\\Desktop\\音视频转录\\二创短视频文案\\YYYYMMDD-转录结果＊二创＊<一句话标题>.md
 """
-import os, json, urllib.request, re, sys
+import re, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _common import call_llm, safe_filename_for_md
 from datetime import datetime
 
-# API 配置
-API_BASE = "https://api.minimaxi.com/anthropic"
+# 模型名（仅在 header 里展示用，真实 API 走 _common）
 MODEL = "MiniMax-M3"
-MAX_TOKENS = 4000
 
 # 路径
 REPO = Path(__file__).resolve().parent.parent
@@ -42,59 +40,6 @@ STYLES = {
 }
 
 
-def call_llm(system, user, max_tokens=4000):
-    body = json.dumps({
-        "model": DEFAULT_MODEL,
-        "max_tokens": max_tokens,
-        "messages": [
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
-        ],
-    }).encode("utf-8")
-    req = urllib.request.Request(
-        f"{API_BASE}/v1/messages",
-        data=body,
-        headers={
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-        },
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=120) as r:
-        data = json.loads(r.read().decode("utf-8"))
-        return "".join(
-            b.get("text", "") for b in data.get("content", []) if b.get("type") == "text"
-        )
-
-
-def call_llm(system_prompt: str, user_prompt: str) -> str:
-    api_key = os.environ.get("MINIMAX_CN_API_KEY", "")
-    if not api_key:
-        raise SystemExit("MINIMAX_CN_API_KEY not set")
-    body = json.dumps({
-        "model": MODEL,
-        "max_tokens": MAX_TOKENS,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-    }).encode("utf-8")
-    req = urllib.request.Request(
-        f"{API_BASE}/v1/messages",
-        data=body,
-        headers={
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-        },
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=120) as r:
-        data = json.loads(r.read().decode("utf-8"))
-        return "".join(
-            b.get("text", "") for b in data.get("content", []) if b.get("type") == "text"
-        )
 
 
 def read_transcription(md_path: Path) -> tuple[str, str, str]:
@@ -112,13 +57,6 @@ def read_transcription(md_path: Path) -> tuple[str, str, str]:
         body = text
     return title, body, ""
 
-
-def make_output_filename(trans_md: Path, title: str) -> str:
-    """YYYYMMDD-转录结果＊二创＊<一句话标题>.md"""
-    date_prefix = datetime.now().strftime("%Y%m%d")
-    # title 里可能含 Windows 非法字符？保险起见替换一下
-    safe_title = re.sub(r'[<>:"/\\|?*]', "_", title)
-    return f"{date_prefix}-转录结果＊二创＊{safe_title}.md"
 
 
 # 转录常见错字 / 同音字纠错表（faster-whisper base 中文高频错）
@@ -214,16 +152,23 @@ def secondary_create(trans_md: Path, style: str = "A") -> Path:
 
 
 def main():
+    # usage: secondary_create.py [trans.md] [style]
+    #   trans.md 留空 = 批量处理 transcriptions/ 里所有 .md
+    #   style    留空 = A (视频号图书带货); 可选 A/B/C/D
     if len(sys.argv) < 2:
-        # 没指定文件，处理 transcriptions/ 里所有 .md
         targets = sorted(TRANS_DIR.glob("*.md")) if TRANS_DIR.is_dir() else []
+        style = "A"
     else:
         targets = [Path(sys.argv[1])]
+        style = sys.argv[2] if len(sys.argv) > 2 else "A"
+    if style not in STYLES:
+        raise SystemExit(f"[err] unknown style: {style}. valid: {list(STYLES.keys())}")
     if not targets:
         print(f"[no targets] {TRANS_DIR} 空", flush=True)
         return
     for t in targets:
-        secondary_create(t)
+        secondary_create(t, style=style)
 
 
-
+if __name__ == "__main__":
+    main()
