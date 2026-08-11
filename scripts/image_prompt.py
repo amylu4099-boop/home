@@ -117,12 +117,12 @@ def parse_bilingual(raw: str) -> tuple[str, str]:
 
 
 def image_prompt(trans_md: Path) -> Path:
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
     title, body = read_transcription(trans_md)
+    (OUT_DIR / title).mkdir(parents=True, exist_ok=True)
     safe_title = safe_filename_for_md(title)
     date_prefix = datetime.now().strftime("%Y%m%d")
-    out_name = f"R4-{safe_title}.md"
-    out_path = OUT_DIR / out_name
+    out_name = "R4.md"
+    out_path = (OUT_DIR / title) / out_name
     if out_path.exists():
         print(f"[skip] already exists: {out_path.name}", flush=True)
         return out_path

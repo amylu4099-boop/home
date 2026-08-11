@@ -107,14 +107,14 @@ def secondary_create(trans_md: Path, style: str = "A") -> Path:
         raise ValueError(f"Unknown style: {style}. Use one of: {list(STYLES.keys())}")
     style_name, style_prompt = STYLES[style]
 
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
     title, body, _ = read_transcription(trans_md)
+    (OUT_DIR / title).mkdir(parents=True, exist_ok=True)
     cleaned_body = pre_correct(body)
     # 文件名加风格后缀避免覆盖
     safe_title = safe_filename_for_md(title)
     date_prefix = datetime.now().strftime("%Y%m%d")
-    out_name = f"R2-{_SHORT_NAME[style]}-{safe_title}.md"
-    out_path = OUT_DIR / out_name
+    out_name = f"R2-{_SHORT_NAME[style]}.md"
+    out_path = (OUT_DIR / title) / out_name
     if out_path.exists():
         print(f"[skip] already exists: {out_path.name}", flush=True)
         return out_path

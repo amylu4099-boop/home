@@ -61,7 +61,7 @@ def read_transcription(md_path: Path) -> tuple[str, str]:
 def make_filename(trans_md: Path, title: str) -> str:
     from datetime import datetime
     date_prefix = datetime.now().strftime("%Y%m%d")
-    return f"R3-{safe_filename_for_md(title)}.md"
+    return "R3.md"
 
 
 import re
@@ -69,10 +69,10 @@ import subprocess
 
 
 def general_create(trans_md: Path) -> Path:
-    GENERAL_DIR.mkdir(parents=True, exist_ok=True)
     title, body = read_transcription(trans_md)
+    (GENERAL_DIR / title).mkdir(parents=True, exist_ok=True)
     out_name = make_filename(trans_md, title)
-    out_path = GENERAL_DIR / out_name
+    out_path = (GENERAL_DIR / title) / out_name
     if out_path.exists():
         print(f"[skip] already exists: {out_path.name}", flush=True)
         return out_path
