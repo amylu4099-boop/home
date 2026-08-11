@@ -53,3 +53,6 @@ transcribe_work/
 # Spec Workflow MCP local state (not part of this repo)
 .spec-workflow/
 
+
+backup_pre_regression_*/
+
