@@ -14,7 +14,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _common import call_llm, safe_filename_for_md, REPO
 
 TRANS_DIR = REPO / "transcriptions"
-OUT_DIR = REPO / "生图提示词"
 
 PROMPT = """你是顶尖的电影质感视觉设计师 + 跨平台 AI 绘图专家。深度解析用户提供的短视频文案，同时生成 2 段独立完整的 AI 绘图提示词（一中文一英文，分别适配国内 / 国际工具）。
 
@@ -118,11 +117,11 @@ def parse_bilingual(raw: str) -> tuple[str, str]:
 
 def image_prompt(trans_md: Path) -> Path:
     title, body = read_transcription(trans_md)
-    (OUT_DIR / title).mkdir(parents=True, exist_ok=True)
+    (REPO / title).mkdir(parents=True, exist_ok=True)
     safe_title = safe_filename_for_md(title)
     date_prefix = datetime.now().strftime("%Y%m%d")
-    out_name = "R4.md"
-    out_path = (OUT_DIR / title) / out_name
+    out_name = "生图提示词.md"
+    out_path = (REPO / title) / out_name
     if out_path.exists():
         print(f"[skip] already exists: {out_path.name}", flush=True)
         return out_path

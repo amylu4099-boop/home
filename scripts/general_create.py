@@ -10,7 +10,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _common import call_llm, safe_filename_for_md, REPO, TRANS_DIR
 
-GENERAL_DIR = REPO / "二创通用"
 PROMPT = r"""你是内容编辑，擅长把音频/视频转录文字改写成多版本结构化文本。
 
 输入：一份转录 .md 文件（标题 + 元信息 + 正文段落）。
@@ -70,9 +69,9 @@ import subprocess
 
 def general_create(trans_md: Path) -> Path:
     title, body = read_transcription(trans_md)
-    (GENERAL_DIR / title).mkdir(parents=True, exist_ok=True)
+    (REPO / title).mkdir(parents=True, exist_ok=True)
     out_name = make_filename(trans_md, title)
-    out_path = (GENERAL_DIR / title) / out_name
+    out_path = (REPO / title) / out_name
     if out_path.exists():
         print(f"[skip] already exists: {out_path.name}", flush=True)
         return out_path

@@ -3,8 +3,7 @@ from pathlib import Path
 from datetime import datetime
 
 repo = Path(__file__).resolve().parent.parent
-out_dir = repo / '字幕'
-(repo / '字幕' / title).mkdir(parents=True, exist_ok=True)
+(repo / title).mkdir(parents=True, exist_ok=True)
 
 API_KEY = os.environ.get('MINIMAX_CN_API_KEY', '')
 API_BASE = 'https://api.minimaxi.com/anthropic'
@@ -67,7 +66,7 @@ def safe_filename(s):
 
 
 def format_subtitle(trans_md: Path) -> Path:
-    (repo / '字幕' / title).mkdir(parents=True, exist_ok=True)
+    (repo / title).mkdir(parents=True, exist_ok=True)
     if not trans_md.exists():
         print(f'[skip] no trans: {trans_md}', flush=True)
         return None
@@ -78,8 +77,8 @@ def format_subtitle(trans_md: Path) -> Path:
     body_start = text.find('---\n\n')
     body = text[body_start+5:].strip() if body_start >= 0 else text
 
-    out_name = 'R6.md'
-    out_path = (repo / '字幕' / title) / out_name  # 标题子文件夹
+    out_name = '字幕.md'
+    out_path = (repo / title) / out_name
     if out_path.exists():
         print(f'[skip] already: {out_path.name}', flush=True)
         return out_path

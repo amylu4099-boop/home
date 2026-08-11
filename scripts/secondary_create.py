@@ -15,7 +15,6 @@ MODEL = "MiniMax-M3"
 # 路径
 REPO = Path(__file__).resolve().parent.parent
 TRANS_DIR = REPO / "transcriptions"
-OUT_DIR = REPO / "二创短视频文案"
 
 # 二创提示词（用户给定的视频号配文二创专家角色）
 """
@@ -108,13 +107,13 @@ def secondary_create(trans_md: Path, style: str = "A") -> Path:
     style_name, style_prompt = STYLES[style]
 
     title, body, _ = read_transcription(trans_md)
-    (OUT_DIR / title).mkdir(parents=True, exist_ok=True)
+    (REPO / title).mkdir(parents=True, exist_ok=True)
     cleaned_body = pre_correct(body)
     # 文件名加风格后缀避免覆盖
     safe_title = safe_filename_for_md(title)
     date_prefix = datetime.now().strftime("%Y%m%d")
-    out_name = f"R2-{_SHORT_NAME[style]}.md"
-    out_path = (OUT_DIR / title) / out_name
+    out_name = f"{_SHORT_NAME[style]}.md"
+    out_path = (REPO / title) / out_name
     if out_path.exists():
         print(f"[skip] already exists: {out_path.name}", flush=True)
         return out_path
