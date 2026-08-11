@@ -94,3 +94,18 @@ if __name__ == "__main__":
     size = sys.argv[3] if len(sys.argv) >= 4 else "base"
     trans_md = transcribe(audio, out, size)
     auto_secondary(trans_md)
+
+
+# === R6: 字幕排版（自动链式调用） ===
+try:
+    _sf = Path(__file__).resolve().parent / "subtitle_format.py"
+    if _sf.exists() and out_md and out_md.exists():
+        r6 = subprocess.run(
+            [sys.executable, str(_sf), str(out_md)],
+            capture_output=True, text=True, timeout=600,
+        )
+        print(r6.stdout, flush=True)
+        if r6.returncode != 0:
+            print(f"[R6 auto] failed: {r6.stderr[:300]}", flush=True)
+except Exception as e:
+    print(f"[R6 auto] error: {e}", flush=True)
