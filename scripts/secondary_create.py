@@ -39,6 +39,8 @@ STYLES = {
     "D": ("公众号风 (深度长文)", PROMPT_D),
 }
 
+_SHORT_NAME = {"A": "视频号", "B": "小红书", "C": "抖音", "D": "公众号"}
+
 
 
 
@@ -111,7 +113,7 @@ def secondary_create(trans_md: Path, style: str = "A") -> Path:
     # 文件名加风格后缀避免覆盖
     safe_title = safe_filename_for_md(title)
     date_prefix = datetime.now().strftime("%Y%m%d")
-    out_name = f"{date_prefix}-转录结果＊二创{style}（{style_name}）＊{safe_title}.md"
+    out_name = f"R2-{_SHORT_NAME[style]}-{safe_title}.md"
     out_path = OUT_DIR / out_name
     if out_path.exists():
         print(f"[skip] already exists: {out_path.name}", flush=True)

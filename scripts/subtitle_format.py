@@ -78,7 +78,7 @@ def format_subtitle(trans_md: Path) -> Path:
     body_start = text.find('---\n\n')
     body = text[body_start+5:].strip() if body_start >= 0 else text
 
-    out_name = f'{datetime.now().strftime("%Y%m%d")}-字幕＊{safe_filename(title)}.md'
+    out_name = f'R6-{safe_filename(title)}.md'
     out_path = out_dir / out_name
     if out_path.exists():
         print(f'[skip] already: {out_path.name}', flush=True)

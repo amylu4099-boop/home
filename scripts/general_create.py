@@ -61,7 +61,7 @@ def read_transcription(md_path: Path) -> tuple[str, str]:
 def make_filename(trans_md: Path, title: str) -> str:
     from datetime import datetime
     date_prefix = datetime.now().strftime("%Y%m%d")
-    return f"{date_prefix}-转录结果＊通用二创＊{safe_filename_for_md(title)}.md"
+    return f"R3-{safe_filename_for_md(title)}.md"
 
 
 import re

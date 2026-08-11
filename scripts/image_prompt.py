@@ -121,7 +121,7 @@ def image_prompt(trans_md: Path) -> Path:
     title, body = read_transcription(trans_md)
     safe_title = safe_filename_for_md(title)
     date_prefix = datetime.now().strftime("%Y%m%d")
-    out_name = f"{date_prefix}-生图提示词＊{safe_title}.md"
+    out_name = f"R4-{safe_title}.md"
     out_path = OUT_DIR / out_name
     if out_path.exists():
         print(f"[skip] already exists: {out_path.name}", flush=True)
