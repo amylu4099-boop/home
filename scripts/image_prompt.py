@@ -1,8 +1,16 @@
 """
-生图提示词脚本（R4）
-输入：R3 通用二创 .md 文件（包含 D 视频脚本部分，画面+节奏+旁白）
+生图提示词脚本（R4）— 短视频封面版
+输入：转录 .md 文件
 输出：生图提示词/YYYYMMDD-生图提示词＊<title>.md
-提示词见下方 PROMPT，输出 Midjourney / DALL-E / SD 三家通用格式
+基于 R4 升级:
+- 9:16 竖版短视频封面（适配即梦/可灵/通义万相）
+- 智能判定 类型一（主体聚焦）or 类型二（宏大叙事）
+- 顶部 3/7 区域主副标题（主 6-15 字, 副作延伸, 暗化遮罩保证可读）
+- 电影级光影（伦勃朗/逆光/丁达尔/冷暖对比）
+- 高级色调（青橙/黑金/莫兰迪/深邃暗调）
+- 4K/8K 摄影级纹理（雨水/金属/烟雾/织物）
+- 严禁露正脸/严禁书籍字眼/严禁带货词汇
+- 输出 1 段完整中文提示词
 """
 import re, sys
 from pathlib import Path
@@ -11,60 +19,77 @@ from datetime import datetime
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _common import call_llm, safe_filename_for_md, REPO
 
-GENERAL_DIR = REPO / "二创通用"
+TRANS_DIR = REPO / "transcriptions"
 OUT_DIR = REPO / "生图提示词"
 
-PROMPT = """你是短视频生图提示词专家，精通 Midjourney / DALL-E 3 / Stable Diffusion 三家通用语法。
+PROMPT = """你是顶尖的电影质感短视频封面视觉设计师。深度解析用户提供的短视频文案，生成 1 段完整中文 AI 绘图提示词（适配即梦 / 可灵 / 通义万相等国内工具）。
 
-输入：R3 通用二创里"版本 D：视频脚本大纲"的全文（含 0-5 秒钩子 + 3-5 个分段）。
-任务：把每个分段的"画面"描述扩展成可直接喂给 AI 生图模型的英文提示词。
+输入：短视频文案（标题 + 段落正文）
+输出：1 段完整中文提示词（300-500 字）。仅输出提示词本身，不要任何解释、标题、分段标签、JSON。
 
-输出要求（按分段依次，每个分段一个 ## 块）：
-## 场景 N：<简短中文名>
-**画面叙事**（中文，1-2 句）：补充原画面描述缺的人物/构图/光影细节。
-**正面提示词**（英文，30-80 词，逗号分隔）：主体 + 动作 + 场景 + 风格 + 光影 + 镜头 + 渲染参数（aspect 16:9, --ar 16:9 等）。
-**反向提示词**（英文，10-20 词）：lowres, bad anatomy, blurry, watermark, text 之类。
-**风格后缀**（英文）：cinematic, photorealistic, anime, ink wash painting 之一。
-**参数建议**：aspect ratio, stylize, quality 等。
+【封面排版规范 - 严格强制】
+- 画面比例：9:16 竖版
+- 顶部文字叠加：主标题 6-15 字居中放画面上 3/7 区域；副标题（主标题的延伸补充，内容不重复，字体较小）紧贴主标题下方居中
+- 文字区域必须用暗化遮罩 / 投影 / 背景留白处理，确保复杂背景下依然清晰
+- 严禁提及书籍，严禁推销带货词汇
 
-硬性规则：
-- 提示词必须英文（Midjourney/DALL-E 不吃中文）
-- 不得编造原脚本没有的人物/场景
-- 人物描述用历史服饰/朝代特征（汉服、宋制、唐制、明制 等）
-- 比例统一 16:9（横屏视频封面/分镜）
-- 风格优先 cinematic / oil painting style / Chinese ink wash（与历史主题契合）
-- 不得在提示词里出现 "image of", "picture of" 等冗余词
-- 数字、人名、地名、年代用原文拼写（如 Tang Dynasty, Li Shimin, 626 AD）
+【主体判定 - 必选其一】
 
-Step 0：列原脚本里每个分段的"画面"原文
-Step 1：每段的画面叙事补充
-Step 2：依次输出 N 个 ## 场景（用代码块包裹每个完整场景）"""
+类型一【主体聚焦向】：文案核心是个人成长、职业身份、情感共鸣、单体产品、动植物
+- 视觉中心：氛围感强的主体。若人物，仅展示背影 / 侧颜 / 局部肢体（握紧的手、行走的脚、肩膀轮廓），严禁露正脸
+- 服饰质感：匹配职业身份（西装挺括 / 工服油污 / 冲锋衣机能感 / 皮肤纹理）
+- 场景：与其身份呼应的深度背景（深夜写字楼、旷野日出、实验室微光）
+
+类型二【宏大叙事向】：文案核心是社会现象、科技趋势、自然风光、城市变迁、哲学思考
+- 视觉中心：不出现具体人物，以隐喻空间或标志性景观为视觉重心
+- 构图：超广角或极度纵深透视（无限延伸的公路、云端建筑、深邃海底、错综电路森林）
+- 氛围：强调"境"的空间规模感，视觉压迫或心理震撼
+
+【电影级光影 - 严禁平庸】
+- 布光：伦勃朗光 / 戏剧化逆光 / 丁达尔效应 / 冷暖色温对比光
+- 色调：沉稳电影胶片色（青橙调 / 黑金调 / 莫兰迪色系 / 深邃暗调）
+- 局部高光点亮：暖金色 / 霓虹光
+- 拒绝高饱和高亮度
+
+【纹理细节 - 4K/8K 摄影级】
+- 雨水打湿路面的倒影
+- 金属磨损
+- 烟雾流动
+- 织物纤维
+- 真实物理质感
+
+【执行流程 - 思考但不输出】
+1. 通读文案，理解核心受众与情感内核
+2. 判定类型（类型一 or 类型二）
+3. 创作主副标题（主标题 6-15 字，爆款潜质一眼抓人；副标题作延伸）
+4. 整合所有指令输出 1 段中文提示词
+
+【硬性约束】
+- 仅输出 1 段连贯中文提示词（约 300-500 字）
+- 内部用逗号 / 句号分隔，逻辑流畅
+- 必须包含：比例 9:16、顶部 3/7 标题区 + 主副标题具体字样、主体描述、光影、色调、纹理细节
+- 严禁露正脸 / 严禁平庸光线 / 严禁高饱和高亮度 / 严禁书籍 / 严禁带货词汇
+- 历史题材优先 cinematic / oil painting / Chinese ink wash 风格
+"""
 
 
-def read_d_section(general_md: Path) -> tuple[str, str]:
-    """从 R3 .md 里抽出 ## 版本 D 部分 + 原始转录 title
-    R3 文件名格式: YYYYMMDD-转录结果＊通用二创＊<原标题>.md
-    """
-    text = general_md.read_text(encoding="utf-8")
-    # 优先从 R3 文件名抽原标题 (避免 R3 头部 "通用二创 · " 前缀污染)
-    parts = general_md.stem.split("＊")
-    if len(parts) >= 3:
-        title = parts[-1].strip()
+def read_transcription(md_path: Path) -> tuple[str, str]:
+    """从转录 .md 抽 (title, body)"""
+    text = md_path.read_text(encoding="utf-8")
+    title_match = re.match(r"^#\s*(.+?)\s*$", text, re.MULTILINE)
+    title = title_match.group(1).strip() if title_match else md_path.stem
+    body_start = text.find("---\n\n")
+    if body_start >= 0:
+        body_start += len("---\n\n")
+        body = text[body_start:].strip()
     else:
-        title_match = re.match(r"^#\s*(.+?)\s*$", text, re.MULTILINE)
-        title = title_match.group(1).strip() if title_match else general_md.stem
-    m = re.search(r"##\s*版本 D.*?(?=\n##\s|\Z)", text, re.DOTALL)
-    if not m:
-        return title, ""
-    return title, m.group(0).strip()
+        body = text
+    return title, body
 
 
-def image_prompt(general_md: Path) -> Path:
+def image_prompt(trans_md: Path) -> Path:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    title, d_section = read_d_section(general_md)
-    if not d_section:
-        print(f"[skip] {general_md.name} 没有版本 D", flush=True)
-        return None
+    title, body = read_transcription(trans_md)
     safe_title = safe_filename_for_md(title)
     date_prefix = datetime.now().strftime("%Y%m%d")
     out_name = f"{date_prefix}-生图提示词＊{safe_title}.md"
@@ -74,37 +99,39 @@ def image_prompt(general_md: Path) -> Path:
         return out_path
 
     user_prompt = (
-        f"请把以下 R3 D 视频脚本转换成生图提示词。\n\n"
-        f"原标题：{title}\n\n"
-        f"D 段原文：\n{d_section}\n\n"
-        f"按你的 Step 0 → Step 1 → Step 2 流程输出完整结果。"
+        f"请为以下短视频文案生成 1 段完整的电影质感封面中文提示词。\n\n"
+        f"原标题（R1 一句话总结）：{title}\n\n"
+        f"文案正文：\n{body[:3000]}\n\n"
+        f"请严格按你的人物判定逻辑 + 9:16 竖版封面规范 + 电影级光影 + 摄影级纹理整合输出。"
     )
-    print(f"[R4] {general_md.name} -> {out_name}", flush=True)
-    raw = call_llm(PROMPT, user_prompt, max_tokens=4000)
+    print(f"[R4] {trans_md.name} -> {out_name}", flush=True)
+    raw = call_llm(PROMPT, user_prompt, max_tokens=2000).strip()
     print(f"[llm] {len(raw)} chars", flush=True)
 
     header = (
         f"# 生图提示词 · {title}\n\n"
-        f"- 原文件：`{general_md.name}`\n"
+        f"- 源文件：`{trans_md.name}`\n"
         f"- 生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
         f"- 模型：_common.DEFAULT_MODEL\n"
-        f"- 风格：Midjourney / DALL-E 3 / Stable Diffusion 通用\n"
-        f"- 比例：16:9 (横屏)\n\n"
+        f"- 工具：即梦 / 可灵 / 通义万相（国内 AI 绘图）\n"
+        f"- 比例：9:16 竖版（短视频封面）\n"
+        f"- 风格：电影质感（伦勃朗光 / 戏剧化逆光 / 丁达尔 / 冷暖对比）\n"
+        f"- 色调：青橙调 / 黑金调 / 莫兰迪 / 深邃暗调\n\n"
         f"---\n\n"
     )
-    out_path.write_text(header + raw, encoding="utf-8")
+    out_path.write_text(header + raw + "\n", encoding="utf-8")
     print(f"[wrote] {out_path} ({out_path.stat().st_size:,} bytes)", flush=True)
     return out_path
 
 
 def main():
     if len(sys.argv) < 2:
-        # 默认处理 二创通用/ 目录里所有 .md
-        targets = sorted(GENERAL_DIR.glob("*.md")) if GENERAL_DIR.is_dir() else []
+        # 默认处理 transcriptions/ 目录里所有 .md
+        targets = sorted(TRANS_DIR.glob("*.md")) if TRANS_DIR.is_dir() else []
     else:
         targets = [Path(sys.argv[1])]
     if not targets:
-        print(f"[no targets] {GENERAL_DIR} 空", flush=True)
+        print(f"[no targets] {TRANS_DIR} 空", flush=True)
         return
     for t in targets:
         try:
